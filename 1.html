@@ -1,6 +1,6 @@
 <head>
- <a href="index.html" class="back-btn"><div>←</div></a>
  <link rel=stylesheet href="styles.css">
+ <a href="index.html" class="back-btn">←</a>
 </head>
 <body>
 <canvas id="canvas"></canvas>
@@ -22,7 +22,7 @@
   
   // Создаем цепочку из 20 шариков
   const points = [];
-  const count = 5;
+  const count = 20;
   for (let i=0;i<count;i++){
     points.push({x: mouse.x, y: mouse.y});
   }
@@ -30,7 +30,7 @@
   // Описываем анимационный цикл
   function animate() {
     // Очищаем холст прозрачным фоном (для эффекта "хвоста" используем низкую opacity)
-    ctx.fillStyle = 'rgba(0,0,0,0.3)'; //0.1 эффект затухания
+    ctx.fillStyle = 'rgba(0,0,0,0.9)'; //0.1 эффект затухания
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     // Добавляем логику змейки 
     // Первая точка преследует мышь
@@ -40,8 +40,8 @@
     for (let i=1;i<count;i++) {
       const previous = points[i-1];
       const current = points[i];
-      current.x += (previous.x-current.x)*0.5;
-      current.y += (previous.y-current.y)*0.5;
+      current.x += (previous.x-current.x)*0.25;
+      current.y += (previous.y-current.y)*0.25;
     }
     // рисуем
     for (let i=0;i<count;i++){
@@ -58,7 +58,7 @@
         ctx.beginPath()
         ctx.moveTo(points[i-1].x, points[i-1].y);
         ctx.lineTo(p.x,p.y);
-        ctx.strokeStyle = 'grba(255,255,255,0.3)';
+        ctx.strokeStyle = 'grba(255,255,255,1.0)';
         ctx.lineWidth=1;
         ctx.stroke();
       }

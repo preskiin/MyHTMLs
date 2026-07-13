@@ -79,11 +79,10 @@ body::before {
   transform: scale(1.02);
   box-shadow: 0 0 2px rgba(255,255,255,1);
 }
-.back-btn {
+.back-btn{
+  display: inline-block;  /*Это свойство требуется для корректной работы размера элемента. Тег a - строчный, что означает ужимание элемента под размер содержимого.
+  в то время как блочный занимает ширину всей страницы (до переноса строки), однако может иметь ограничения размера внешнего вида (в стиле! фактически, элемент все равно занимает всю строку)*/
   text-decoration: none;
-  width: 80px;
-}
-.back-btn div{
   height: 30px;
   width: 80px;
   font-size: 24px;
@@ -93,15 +92,34 @@ body::before {
   border-radius: 5px;
   text-align: center;
   margin: 5px;
-  background: linear-gradient(90deg, black 40%, white 60%, black 80%);
-  background-size: 200% 100%;
+  background: linear-gradient(45deg, black 30%, white 50%, black 70%);
+  background-size: 250% 100%;
   animation: btn-bg 5s ease infinite;
 }
-
+#clear-btn {
+  display: inline-block;
+  width: 80px;
+  height: 20px;
+  text-align: center;
+  margin: 0px 0px 5px 5px;
+  padding: 4px;
+  border: solid 1px rgba(104, 225, 255, 0.61);
+  border-radius: 5px;
+  background: rgb(31, 133, 250);
+  transition: filter 0.2s ease;
+  filter: brightness(1.0);
+  color: rgb(255, 255, 255);
+  font-family: 'Courier New';
+}
+#clear-btn:hover {
+  transition: filter 0.2s ease;
+  filter: brightness(1.5);
+  cursor: pointer;
+}
 @keyframes btn-bg {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 200% 50%; }
-  100% { background-position: 0% 50%; }
+  0% { background-position: -40% 0%; }
+  50% { background-position: 140% 0%; }
+  100% { background-position: -40% 0%; }
 }
 @keyframes waterfall-bg {
   from { transform: translate(0%, 0%); }
