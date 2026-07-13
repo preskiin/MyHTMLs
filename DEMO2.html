@@ -1,0 +1,164 @@
+<head>
+ <div><a href="index.html">Back</a></div>
+ <!--<link rel=stylesheet href="styles.css">-->
+ <style>
+    body{
+  background-color: red;
+  position: relative;
+  overflow: hidden;
+  margin:0;
+}
+#fx-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background: transparent;
+  pointer-events: none; 
+}
+body::before {
+  content: '';
+  position: fixed;
+  top:-100%;
+  width: 100%;
+  height:200%;
+  background: repeating-linear-gradient(in oklch, #0054d3, #00725f, #0054d3, #00725f,#0054d3);
+  animation: waterfall-bg 20s linear infinite;
+  z-index: -2;              /*чтобы контент был поверх */
+}
+@keyframes waterfall-bg {
+  from { transform: translate(0%, 0%); }
+  to   { transform: translate(0%, 50%); }
+}
+.menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 200px);
+  gap:20px;
+  min-width: fit-content;
+  min-height: 168px;
+  list-style: none; /**/
+  border: solid 2px rgba(255, 255, 255, 0.3); 
+  border-radius: 30px;
+  margin: 40px;
+  padding: 20px;
+  background-color: rgba(56, 153, 177, 0.3);
+}
+.menu a {
+  text-decoration:none;
+}
+.menu a li {
+  text-align: center;
+  margin: 5px;
+  border:solid 2px #ffffffb3;
+  border-radius:10px;
+  background-color: rgb(0, 98, 143);
+  transition: transform 0.5s ease;
+}
+.menu a li img {
+  vertical-align: middle;
+  width:160px;
+  height:160px;
+  border-radius: 5px;
+  filter:blur(5px);
+  transition: filter 1s ease;
+  margin:4px;
+  object-fit: cover;
+  
+}
+.menu a li div {
+  color:rgb(190, 255, 246);
+  font-family: Trebuchet MS;
+  z-index:1;
+  transform: translateY(0px);
+  transition: transform 1s ease;
+}
+.menu a li:hover img{
+  filter:blur(0px) brightness(1.1);
+  transition: filter 1s ease;
+}
+.menu a li:hover div{
+  transform: translateY(-20px) scale(1.5);
+  transition: transform 1s ease, filter 1s ease;
+}
+.menu a li:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 2px rgba(255,255,255,1);
+}
+ </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = document.body.clientWidth;
+  canvas.height = document.body.clientHeight;
+  const radius = 100;
+  let headPosition ={x: canvas.width/2+radius, y: canvas.height/2};
+  let currentCenter={x: canvas.width/2, y: canvas.height/2};
+  let counter=0;
+  const snakeSpeed=0.2;
+  const animationSpeed=0.055;
+  // Событие изменения центра круга по клику
+  canvas.addEventListener('click', (e)=>{
+    const rect = canvas.getBoundingClientRect();
+    currentCenter.x = e.clientX - rect.left;
+    currentCenter.y = e.clientY - rect.top;
+    headPosition.x = currentCenter.x + radius;
+    headPosition.y = currentCenter.y;
+    counter=0
+  });
+
+  // Создаем цепочку из 5 шариков
+  const points = [];
+  const count = 20;
+  for (let i=0;i<count;i++){
+    points.push({x: headPosition.x, y: headPosition.y});
+  }
+
+  function animate() {
+    counter+=animationSpeed;
+
+    // Очищаем холст прозрачным фоном (для эффекта "хвоста" используем низкую opacity)
+    ctx.fillStyle = 'rgba(0,0,0,1)'; //0.1 эффект затухания
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // указываем, куда сдвинулась голова змеи при вызове функции
+    headPosition.x = currentCenter.x + radius*Math.cos(counter);
+    headPosition.y = currentCenter.y + radius*Math.sin(counter);
+    // Добавляем логику змейки 
+    points[0].x += (headPosition.x - points[0].x) * snakeSpeed;
+    points[0].y += (headPosition.y - points[0].y) * snakeSpeed;
+    // Остальные точки преследуют предыдущую
+    for (let i=1;i<count;i++) {
+      const previous = points[i-1];
+      const current = points[i];
+      current.x += (previous.x-current.x)*snakeSpeed;
+      current.y += (previous.y-current.y)*snakeSpeed;
+    }
+    // рисуем
+    for (let i=0;i<count;i++){
+      const p = points[i];
+      const radius = (count-i)/count*15+5; //рост к голове
+      // цвета радуги
+      const hue = (i / count)*360 + Date.now() * 0.1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${hue}, 100%, 60%`;
+      ctx.fill();
+      // соединяем точки
+      if (i>0){
+        ctx.beginPath()
+        ctx.moveTo(points[i-1].x, points[i-1].y);
+        ctx.lineTo(p.x,p.y);
+        ctx.strokeStyle = 'grba(255,255,255,0.3)';
+        ctx.lineWidth=1;
+        ctx.stroke();
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+</script>
+</body>
