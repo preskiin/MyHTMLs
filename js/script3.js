@@ -1,0 +1,67 @@
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = document.body.clientWidth-5;
+canvas.height = document.body.clientHeight-5;
+function resize() {
+  canvas.width = document.body.clientWidth-5;
+  canvas.height = document.body.clientHeight-5;
+}
+window.addEventListener('resize', resize);
+document.getElementById('clear-btn').addEventListener('click', ClearField); 
+
+let particles=[];
+let isAnimating=false;
+canvas.addEventListener('click', (e)=>{
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.clientX-rect.left;
+  const cy = e.clientY-rect.top;
+  for (let i=0;i<Math.random()*5+5;i++){
+    let angle = Math.random() * Math.PI*2;
+    let speed = Math.random()*4 +2;
+    particles.push({
+      x: cx,
+      y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1.0,
+      color: `hsl(${Math.random()*80+10}, 100%, 50%)`,
+      size: Math.random()*3 +2
+    });
+  }
+  startAnimation();
+});
+  
+function animate(){
+  // ctx.clearRect(0, 0, canvas.width, canvas.height); //очищаем холст, чтобы не оставлять следы после прошлой позиции частицы
+  let particle;
+  for (i=particles.length-1;i>=0;i--){  //описание действия для КАЖДОЙ частицы при вызове функции
+    particle = particles[i];
+    particle.x += particle.vx; // сдвиг по OX
+    particle.y += particle.vy; // сдвиг по OY
+    particle.life-=0.01; // влияние времени на время существования частицы 
+    if (particle.life<=0) {
+        particles.splice(i,1);
+        continue;
+    }
+    ctx.globalAlpha = particle.life;  // благодаря globalAlpha выставляется прозрачность кисти (увеличиваем прозрачность частицы при удалении от центра)
+    ctx.beginPath(); // отдает кисти команду о начале НОВОГО пути. Если убрать beginPath(), переход от одной точки к другой (от одной частицы к следующей) будет соединен
+    ctx.arc(particle.x, particle.y, particle.size*particle.life, 0, Math.PI*2); //изображение круга (а точнее - дуги, координаты центра, радиус начала и радиус конца отрисовки)
+    ctx.fillStyle = particle.color; //цвет заполнения
+    ctx.fill(); // команда кисти заполнить цветом нарисованную фигуру
+  }
+  ctx.globalAlpha = 1; // сбрасываем прозрачность кисти для корректного изображения следующей частицы
+  if (particles.length>0){
+    requestAnimationFrame(animate);
+  } else {
+    isAnimating=false;
+  }
+}
+function startAnimation(){
+  if (!isAnimating) {
+    isAnimating=true;
+    animate();
+  }
+}
+function ClearField(){
+  ctx.clearRect(0,0,canvas.width, canvas.height);
+}

@@ -1,0 +1,61 @@
+const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = document.body.clientWidth;
+  canvas.height = document.body.clientHeight;
+  
+  // храним позицию мыши
+  let mouse = {x: canvas.width/2, y: canvas.height/2};
+  
+  // Подписываемся на движение мыши
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  });
+  
+  // Создаем цепочку из 20 шариков
+  const points = [];
+  const count = 20;
+  for (let i=0;i<count;i++){
+    points.push({x: mouse.x, y: mouse.y});
+  }
+  
+  // Описываем анимационный цикл
+  function animate() {
+    // Очищаем холст прозрачным фоном (для эффекта "хвоста" используем низкую opacity)
+    ctx.fillStyle = 'rgba(0,0,0,0.9)'; //0.1 эффект затухания
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Добавляем логику змейки 
+    // Первая точка преследует мышь
+    points[0].x += (mouse.x - points[0].x) * 0.2;
+    points[0].y += (mouse.y - points[0].y) * 0.2;
+    // Остальные точки преследуют предыдущую
+    for (let i=1;i<count;i++) {
+      const previous = points[i-1];
+      const current = points[i];
+      current.x += (previous.x-current.x)*0.25;
+      current.y += (previous.y-current.y)*0.25;
+    }
+    // рисуем
+    for (let i=0;i<count;i++){
+      const p = points[i];
+      const radius = (count-i)/count*5+5; //рост к голове
+      // цвета радуги
+      const hue = (i / count)*360 + Date.now() * 0.1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${hue}, 100%, 60%`;
+      ctx.fill();
+      // соединяем точки
+      if (i>0){
+        ctx.beginPath()
+        ctx.moveTo(points[i-1].x, points[i-1].y);
+        ctx.lineTo(p.x,p.y);
+        ctx.strokeStyle = 'grba(255,255,255,1.0)';
+        ctx.lineWidth=1;
+        ctx.stroke();
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();

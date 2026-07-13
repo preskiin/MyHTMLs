@@ -96,6 +96,11 @@ body::before {
   background-size: 250% 100%;
   animation: btn-bg 5s ease infinite;
 }
+.back-btn:hover{
+  transition: filter 1s ease;
+  filter: brightness(1.5);
+  background: rgba(0,0,0,1);
+}
 #clear-btn {
   display: inline-block;
   width: 80px;
