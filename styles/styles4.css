@@ -11,7 +11,7 @@ body::before {
   width: 100%;
   height:200%;
   background: repeating-linear-gradient(in oklch, #0054d3, #00725f, #0054d3, #00725f,#0054d3);
-  animation: waterfall-bg 20s linear infinite;
+  animation: waterfall-bg 5s linear infinite;
   z-index: -2;              /*чтобы контент был поверх */
 }
 .back-btn{
@@ -35,6 +35,46 @@ body::before {
   transition: filter 1s ease;
   filter: brightness(1.5);
   background: rgba(0,0,0,1);
+}
+#canvas{
+  border:solid 2px rgba(255,255,255, 0.5);
+}
+.grid {
+  display: grid;
+  gap: 5px;
+  max-width: 300px;
+  margin: 5px;
+  font-weight:bold;
+  font-family: 'Courier New';
+  color: rgb(0, 140, 255)
+}
+.key {
+  background-color: rgba(0, 94, 172, 0.5);
+  border:solid 1px rgba(19, 208, 255, 0.5);
+  border-radius: 5px;
+  text-align: center;
+  filter: brightness(1.0);
+  transition: filter 0.2s ease;
+}
+.key-up{
+  grid-column: 2;
+  grid-row: 1;
+}
+.key-left{
+  grid-column: 1;
+  grid-row: 2;
+}
+.key-down{
+  grid-column: 2;
+  grid-row: 2;
+}
+.key-right{
+  grid-column: 3;
+  grid-row: 2;
+}
+.key.pressed {
+  filter: brightness(1.5);
+  transition: filter 0.2s ease;
 }
 @keyframes btn-bg {
   0% { background-position: -40% 0%; }
