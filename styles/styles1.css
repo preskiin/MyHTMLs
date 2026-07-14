@@ -1,0 +1,47 @@
+body{
+  background-color: red;
+  position: relative;
+  overflow: hidden;
+  margin:0;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top:-100%;
+  width: 100%;
+  height:200%;
+  background: repeating-linear-gradient(in oklch, #0054d3, #00725f, #0054d3, #00725f,#0054d3);
+  animation: waterfall-bg 20s linear infinite;
+  z-index: -2;              /*чтобы контент был поверх */
+}
+.back-btn{
+  display: inline-block;  /*Это свойство требуется для корректной работы размера элемента. Тег a - строчный, что означает ужимание элемента под размер содержимого.
+  в то время как блочный занимает ширину всей страницы (до переноса строки), однако может иметь ограничения размера внешнего вида (в стиле! фактически, элемент все равно занимает всю строку)*/
+  text-decoration: none;
+  height: 30px;
+  width: 80px;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  border: solid rgba(104, 225, 255, 0.61) 1px;
+  border-radius: 5px;
+  text-align: center;
+  margin: 5px;
+  background: linear-gradient(45deg, black 30%, white 50%, black 70%);
+  background-size: 250% 100%;
+  animation: btn-bg 5s ease infinite;
+}
+.back-btn:hover{
+  transition: filter 1s ease;
+  filter: brightness(1.5);
+  background: rgba(0,0,0,1);
+}
+@keyframes btn-bg {
+  0% { background-position: -40% 0%; }
+  50% { background-position: 140% 0%; }
+  100% { background-position: -40% 0%; }
+}
+@keyframes waterfall-bg {
+  from { transform: translate(0%, 0%); }
+  to   { transform: translate(0%, 50%); }
+}
