@@ -1,4 +1,5 @@
 function Main(){
+  const timer = setInterval(Tick, 10);
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   canvas.width = document.body.clientWidth-5;
@@ -49,10 +50,17 @@ function Main(){
       case 'ArrowRight':
         PressRight();
         break;
+      case 'Space':
+        PressSpace();
+        break;
       default:
         console.log('Unknown key');
         break;
     }
+  }
+  //Pause button pressed
+  function PressSpace(){
+    
   }
   //Pull down up btn
   function PressUp(){
@@ -137,6 +145,25 @@ function Main(){
     rightElement.classList.toggle('pressed');
     flagRight=false;
     document.removeEventListener('keyup', ReleaseRight);
+  }
+  let tickCounter=0;
+  let deadlineInterval=0;
+  //Timer tick (T=1/100)
+  function Tick(){
+    TestTick();
+    CheckEnd();
+  }
+  function TestTick(){
+    tickCounter++;
+    if (tickCounter===100){
+      console.log('Hello.');
+      tickCounter=0;
+    }
+  }
+  function CheckEnd() {
+    deadlineInterval++;
+    if (deadlineInterval>1000)
+      clearInterval(timer);
   }
 }
 Main();
