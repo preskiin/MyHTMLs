@@ -1,10 +1,8 @@
 function Main(){
-  const timer = setInterval(Tick001, 10);
+  let timer1;
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
-  let tickCounter=0;//counter of 10ms ticks
-  let deadlineInterval=0;//counter for shutdown
-  let tick1=0;
+  let seconds=0;
   let tick005=0;
   let flagPause = true;
   let flagUp = false;
@@ -27,6 +25,7 @@ function Main(){
   };
   let snake={
     speed:0,
+    sparseness: 10,
     x: 0,
     y: 0,
     direction:0, // the direction of snake`s head (angle between upside and snake`s direction of move)
@@ -36,39 +35,24 @@ function Main(){
   window.addEventListener('resize', resize);
   DrawField();
   SnakeInit((canvas.getBoundingClientRect().right-21)/2 + 100, (canvas.getBoundingClientRect().bottom-136)/2);
+  DrawAllElements();
   document.addEventListener('keydown', KeyPressed);
-  
-  //Timer tick (T=1/100)
-  function Tick001(){
+  //Function to draw page with screen frequency
+  function DrawFrame(){
     if (flagPause===true)//Stop all logic if the game is not started or paused.
       return;
-    tickCounter++;
-    Tick1();
-    //Tick005();
     SnakeMove();
-    CheckEnd();
     AgingParticle();
     DrawAllElements();// This function should be in the end of tick, because all works with elements would be finished here.
-  }
-  //Timer tick (T=5/100)
-  function Tick005(){
-    if (Math.floor(tickCounter/10)>=tick005){
-      //console.log(`0,05sec: ${tickCounter}`);
-      SnakeMove();
-      tick005++;
-    }
+    requestAnimationFrame(DrawFrame);
   }
   //Function to tick status time every second
   function Tick1(){
-    if (Math.floor(tickCounter/100)>=tick1){
-      // console.log(`1sec: ${tickCounter}`);
-      ChangeTimeValue(tick1);
-      tick1++;
-    }  
+    ChangeTimeValue(seconds++);
   }
   //Initialize snake
   function SnakeInit(x0,y0){
-    snake.speed=5;
+    snake.speed=10;
     snake.x=x0;
     snake.y=y0;
     snake.direction=0;
@@ -124,13 +108,17 @@ function Main(){
   //Pause button pressed
   function PressSpace(){
     if (flagPause===true){
+      timer1=setInterval(Tick1,1000);
       spaceElement.classList.toggle('paused');
-      console.log('Unpaused')
+      console.log('Unpaused');
       flagPause=false;
+      requestAnimationFrame(DrawFrame);
     } else {
+      clearInterval(timer1);
       spaceElement.classList.toggle('paused');
       console.log('Paused')
       flagPause=true;
+      cancelAnimationFrame(DrawFrame);
     }
   }
   //Pull down up btn
@@ -225,14 +213,6 @@ function Main(){
     secs<10 ? secs=`0${secs}` : secs=`${secs}`;
     timeValueElement.textContent = `${mins}:${secs}`;
   }
-  //Check of the timer for game.
-  function CheckEnd() {
-    deadlineInterval++;
-    if (deadlineInterval>100000){
-      console.log(`DEADEND: ${tickCounter}`);
-      clearInterval(timer);
-    }
-  }
   //Function for decrease of a particle`s lifetime
   function AgingParticle(){
     particle.life-=0.001;
@@ -255,7 +235,7 @@ function Main(){
     tail[0].x=snake.x;
     tail[0].y=snake.y;
     snake.x=snake.x+Math.cos(snake.direction)*snake.speed;
-    snake.y=snake.y+Math.sin(snake.direction)*snake.speed;
+    snake.y=snake.y-Math.sin(snake.direction)*snake.speed;
   }
   //Draw a single particle, that is defined in object "particle"
   function DrawParticle(){
