@@ -1,14 +1,11 @@
 function Main(){
-  const timer = setInterval(Tick, 10);
+  const timer = setInterval(Tick001, 10);
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
-  canvas.width = document.body.clientWidth-5;
-  canvas.height = document.body.clientHeight-5;
-  window.addEventListener('resize', resize);
-  DrawField();
   let tickCounter=0;//counter of 10ms ticks
   let deadlineInterval=0;//counter for shutdown
-  let seconds=0;
+  let tick1=0;
+  let tick005=0;
   let flagPause = true;
   let flagUp = false;
   let flagLeft = false;
@@ -20,12 +17,72 @@ function Main(){
   const downElement = document.querySelector('.key-down');
   const rightElement = document.querySelector('.key-right');
   const spaceElement = document.querySelector('.key-space');
+  canvas.width = window.innerWidth-5;
+  canvas.height = window.innerHeight-120;
+  let particle ={
+    x: (canvas.getBoundingClientRect().right-21)/2,
+    y: (canvas.getBoundingClientRect().bottom-136)/2, 
+    life:1.0,
+    color: `hsl(${Math.random()*360}, 100%, 50%)`
+  };
+  let snake={
+    speed:0,
+    x: 0,
+    y: 0,
+    direction:0, // the direction of snake`s head (angle between upside and snake`s direction of move)
+    color: `hsl(${Math.random()*360}, 100%, 50%)`
+  };
+  let tail=[]; // snake`s tail elements
+  window.addEventListener('resize', resize);
+  DrawField();
+  SnakeInit((canvas.getBoundingClientRect().right-21)/2 + 100, (canvas.getBoundingClientRect().bottom-136)/2);
   document.addEventListener('keydown', KeyPressed);
-
+  
+  //Timer tick (T=1/100)
+  function Tick001(){
+    if (flagPause===true)//Stop all logic if the game is not started or paused.
+      return;
+    tickCounter++;
+    Tick1();
+    //Tick005();
+    SnakeMove();
+    CheckEnd();
+    AgingParticle();
+    DrawAllElements();// This function should be in the end of tick, because all works with elements would be finished here.
+  }
+  //Timer tick (T=5/100)
+  function Tick005(){
+    if (Math.floor(tickCounter/10)>=tick005){
+      //console.log(`0,05sec: ${tickCounter}`);
+      SnakeMove();
+      tick005++;
+    }
+  }
+  //Function to tick status time every second
+  function Tick1(){
+    if (Math.floor(tickCounter/100)>=tick1){
+      // console.log(`1sec: ${tickCounter}`);
+      ChangeTimeValue(tick1);
+      tick1++;
+    }  
+  }
+  //Initialize snake
+  function SnakeInit(x0,y0){
+    snake.speed=5;
+    snake.x=x0;
+    snake.y=y0;
+    snake.direction=0;
+    for (let i=1;i<=5;i++){
+      tail.push({
+        x: snake.x-10*i,
+        y: snake.y
+      });
+    }
+  }
   //Changing the size of canvas
   function resize() {
-    canvas.width = document.body.clientWidth-5;
-    canvas.height = document.body.clientHeight-5;
+    canvas.width = window.innerWidth-5;
+    canvas.height = window.innerHeight-120;
     DrawField();
   }
   //Filling canvas black background
@@ -160,21 +217,7 @@ function Main(){
     flagRight=false;
     document.removeEventListener('keyup', ReleaseRight);
   }
-  //Timer tick (T=1/100)
-  function Tick(){
-    TimeTick();
-    CheckEnd();
-  }
-  function TimeTick(){
-    tickCounter++;
-    if (flagPause===false){
-      if (Math.floor(tickCounter/100)>=1){
-        seconds++;
-        ChangeTimeValue(seconds);
-        tickCounter=0;
-      }
-    }
-  }
+  //To set time value
   function ChangeTimeValue(value){
     let mins=Math.floor(value/60);
     let secs=value%60;
@@ -182,12 +225,73 @@ function Main(){
     secs<10 ? secs=`0${secs}` : secs=`${secs}`;
     timeValueElement.textContent = `${mins}:${secs}`;
   }
+  //Check of the timer for game.
   function CheckEnd() {
     deadlineInterval++;
     if (deadlineInterval>100000){
       console.log(`DEADEND: ${tickCounter}`);
       clearInterval(timer);
     }
+  }
+  //Function for decrease of a particle`s lifetime
+  function AgingParticle(){
+    particle.life-=0.001;
+    if (particle.life<=0){
+      GenerateNewParticle();
+    }
+  }
+  //Generates particle on new coordinates
+  function GenerateNewParticle(){
+    particle.x=Math.random()*(canvas.getBoundingClientRect().right-21)+15;
+    particle.y=Math.random()*(canvas.getBoundingClientRect().bottom-136)+15;
+    particle.life=1.0;
+    particle.color= `hsl(${Math.random()*360}, 100%, 50%)`;
+  }
+  function SnakeMove(){
+    for (let i=tail.length-1;i>=1;i--){// till 1, because second tail`s element will get position of snake`s head
+      tail[i].x=tail[i-1].x;
+      tail[i].y=tail[i-1].y;
+    }
+    tail[0].x=snake.x;
+    tail[0].y=snake.y;
+    snake.x=snake.x+Math.cos(snake.direction)*snake.speed;
+    snake.y=snake.y+Math.sin(snake.direction)*snake.speed;
+  }
+  //Draw a single particle, that is defined in object "particle"
+  function DrawParticle(){
+    ctx.beginPath();
+    ctx.arc(particle.x, particle.y, particle.life*15,0,Math.PI*2);
+    ctx.fillStyle = particle.color;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(particle.x, particle.y, 15, 0, Math.PI*2);
+    ctx.strokeStyle = particle.color;
+    ctx.lineWidth=1;
+    ctx.stroke();
+  }
+  //Draw snake`s head and tail`s elements
+  function DrawSnake(){
+    for (let i=tail.length-1; i>=0; i--){
+      ctx.beginPath();
+      ctx.arc(tail[i].x, tail[i].y, 10, 0, Math.PI*2);
+      ctx.fillStyle=snake.color;
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(snake.x, snake.y, 8, 0, Math.PI*2);
+    ctx.fillStyle="black";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(snake.x, snake.y, 9, 0, Math.PI*2);
+    ctx.strokeStyle=snake.color;
+    ctx.lineWidth=2;
+    ctx.stroke();
+  }
+  //Function for drawing all objects, that exist on canvas per frame
+  function DrawAllElements(){
+    DrawField(); 
+    DrawSnake();
+    DrawParticle();
   }
 }
 Main();

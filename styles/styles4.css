@@ -11,7 +11,7 @@ body::before {
   width: 100%;
   height:200%;
   background: repeating-linear-gradient(in oklch, #0054d3, #00725f, #0054d3, #00725f,#0054d3);
-  animation: waterfall-bg 5s linear infinite;
+  animation: waterfall-bg 2s linear infinite;
   z-index: -2;              /*чтобы контент был поверх */
 }
 .back-btn{
@@ -103,7 +103,7 @@ body::before {
   display:grid;
   position:fixed;
   border-radius: 5px;
-  border:solid 1px rgba(19, 208, 255, 0.5);
+  border:solid 2px rgba(19, 208, 255, 0.5);
   gap: 5px;
   right:5px;
 }
@@ -124,7 +124,8 @@ body::before {
   grid-row:1;
 }
 .status {
-  color: rgba(19, 208, 255, 0.5);
+  color: rgba(0, 255, 136, 0.7);
+  font-weight: bold;
   font-family:'Courier New';
   margin: 2px;
 }
