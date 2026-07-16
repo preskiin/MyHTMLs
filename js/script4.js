@@ -3,7 +3,7 @@ function Main(){
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   let seconds=0;
-  let tick005=0;
+  let dontKnowHowToNameItNow=0;
   let flagPause = true;
   let flagUp = false;
   let flagLeft = false;
@@ -24,8 +24,7 @@ function Main(){
     color: `hsl(${Math.random()*360}, 100%, 50%)`
   };
   let snake={
-    speed:0,
-    sparseness: 10,
+    speed: 0,
     x: 0,
     y: 0,
     direction:0, // the direction of snake`s head (angle between upside and snake`s direction of move)
@@ -34,14 +33,16 @@ function Main(){
   let tail=[]; // snake`s tail elements
   window.addEventListener('resize', resize);
   DrawField();
-  SnakeInit((canvas.getBoundingClientRect().right-21)/2 + 100, (canvas.getBoundingClientRect().bottom-136)/2);
+  SnakeInit((canvas.getBoundingClientRect().right-21)/2 + 100, (canvas.getBoundingClientRect().bottom-136)/2);//отладочный вывод. не забудь убрать
   DrawAllElements();
   document.addEventListener('keydown', KeyPressed);
+
+
   //Function to draw page with screen frequency
   function DrawFrame(){
     if (flagPause===true)//Stop all logic if the game is not started or paused.
       return;
-    SnakeMove();
+    SnakeMove(5);
     AgingParticle();
     DrawAllElements();// This function should be in the end of tick, because all works with elements would be finished here.
     requestAnimationFrame(DrawFrame);
@@ -49,6 +50,7 @@ function Main(){
   //Function to tick status time every second
   function Tick1(){
     ChangeTimeValue(seconds++);
+    //SnakeMove(5); 
   }
   //Initialize snake
   function SnakeInit(x0,y0){
@@ -227,15 +229,16 @@ function Main(){
     particle.life=1.0;
     particle.color= `hsl(${Math.random()*360}, 100%, 50%)`;
   }
-  function SnakeMove(){
+  //Main snake move function, offset of head is inversly proportional to smoothness
+  function SnakeMove(smoothness){
     for (let i=tail.length-1;i>=1;i--){// till 1, because second tail`s element will get position of snake`s head
-      tail[i].x=tail[i-1].x;
-      tail[i].y=tail[i-1].y;
+      tail[i].x=tail[i].x+(tail[i-1].x-tail[i].x)/smoothness;
+      tail[i].y=tail[i].y+(tail[i-1].y-tail[i].y)/smoothness;
     }
-    tail[0].x=snake.x;
-    tail[0].y=snake.y;
-    snake.x=snake.x+Math.cos(snake.direction)*snake.speed;
-    snake.y=snake.y-Math.sin(snake.direction)*snake.speed;
+    tail[0].x=tail[0].x + Math.cos(snake.direction)*(snake.speed/smoothness);
+    tail[0].y=tail[0].y - Math.sin(snake.direction)*(snake.speed/smoothness);
+    snake.x=snake.x+Math.cos(snake.direction)*(snake.speed/smoothness);
+    snake.y=snake.y-Math.sin(snake.direction)*(snake.speed/smoothness);
   }
   //Draw a single particle, that is defined in object "particle"
   function DrawParticle(){
