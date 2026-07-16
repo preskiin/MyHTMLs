@@ -1,9 +1,10 @@
 function Main(){
   let timer1;
+  let timer001;
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
-  let seconds=0;
-  let dontKnowHowToNameItNow=0;
+  let AmountOfPressedDirections=0;
+  let seconds=1;
   let flagPause = true;
   let flagUp = false;
   let flagLeft = false;
@@ -31,8 +32,10 @@ function Main(){
     color: `hsl(${Math.random()*360}, 100%, 50%)`
   };
   let tail=[]; // snake`s tail elements
+  let needWay;
+  let needX;
+  let needY;
   window.addEventListener('resize', resize);
-  DrawField();
   SnakeInit((canvas.getBoundingClientRect().right-21)/2 + 100, (canvas.getBoundingClientRect().bottom-136)/2);//отладочный вывод. не забудь убрать
   DrawAllElements();
   document.addEventListener('keydown', KeyPressed);
@@ -42,15 +45,18 @@ function Main(){
   function DrawFrame(){
     if (flagPause===true)//Stop all logic if the game is not started or paused.
       return;
-    SnakeMove(5);
-    AgingParticle();
-    DrawAllElements();// This function should be in the end of tick, because all works with elements would be finished here.
+    DrawAllElements();
     requestAnimationFrame(DrawFrame);
   }
   //Function to tick status time every second
   function Tick1(){
     ChangeTimeValue(seconds++);
-    //SnakeMove(5); 
+  }
+  //Function to activate functions every 10ms
+  function Tick001(){
+    AffectDirection();
+    SnakeMove(5);
+    AgingParticle();
   }
   //Initialize snake
   function SnakeInit(x0,y0){
@@ -111,12 +117,14 @@ function Main(){
   function PressSpace(){
     if (flagPause===true){
       timer1=setInterval(Tick1,1000);
+      timer001=setInterval(Tick001,10);
       spaceElement.classList.toggle('paused');
       console.log('Unpaused');
       flagPause=false;
       requestAnimationFrame(DrawFrame);
     } else {
       clearInterval(timer1);
+      clearInterval(timer001);
       spaceElement.classList.toggle('paused');
       console.log('Paused')
       flagPause=true;
@@ -128,32 +136,36 @@ function Main(){
     if (flagUp===false) {
       upElement.classList.toggle('pressed');
       flagUp=true;
+      AmountOfPressedDirections++;
       document.addEventListener('keyup', KeyRelease)
-    }
+    } 
   }
   //Pull down left btn
   function PressLeft(){
     if (flagLeft===false) {
       leftElement.classList.toggle('pressed');
       flagLeft=true;
+      AmountOfPressedDirections++;
       document.addEventListener('keyup', KeyRelease)
-    }
+    } 
   }
   //Pull down down btn
   function PressDown(){
     if (flagDown===false) {
       downElement.classList.toggle('pressed');
       flagDown=true;
+      AmountOfPressedDirections++;
       document.addEventListener('keyup', KeyRelease)
-    }
+    } 
   }
   //Pull down right btn
   function PressRight(){
     if (flagRight===false) {
       rightElement.classList.toggle('pressed');
       flagRight=true;
+      AmountOfPressedDirections++;
       document.addEventListener('keyup', KeyRelease)
-    }
+    } 
   }
   //The function to track the status of released btn
   function KeyRelease(e) {
@@ -185,27 +197,39 @@ function Main(){
   }
   //Release for button up
   function ReleaseUp(){
-    upElement.classList.toggle('pressed');
-    flagUp=false;
-    document.removeEventListener('keyup', ReleaseUp);
+    if (flagUp===true) {
+      upElement.classList.toggle('pressed');
+      flagUp=false;
+      AmountOfPressedDirections--;
+      document.removeEventListener('keyup', ReleaseUp);
+    } 
   }
   //Release for button left
   function ReleaseLeft(){
-    leftElement.classList.toggle('pressed');
-    flagLeft=false;
-    document.removeEventListener('keyup', ReleaseLeft);
+    if (flagLeft===true){
+      leftElement.classList.toggle('pressed');
+      flagLeft=false;
+      AmountOfPressedDirections--;
+      document.removeEventListener('keyup', ReleaseLeft);
+    } 
   }
   //Release for button down
   function ReleaseDown(){
-    downElement.classList.toggle('pressed');
-    flagDown=false;
-    document.removeEventListener('keyup', ReleaseDown);
+    if (flagDown===true){
+      downElement.classList.toggle('pressed');
+      flagDown=false;
+      AmountOfPressedDirections--;
+      document.removeEventListener('keyup', ReleaseDown);
+    } 
   }
   //Release for button right
   function ReleaseRight(){
-    rightElement.classList.toggle('pressed');
-    flagRight=false;
-    document.removeEventListener('keyup', ReleaseRight);
+    if (flagRight===true) {
+      rightElement.classList.toggle('pressed');
+      flagRight=false;
+      AmountOfPressedDirections--;
+      document.removeEventListener('keyup', ReleaseRight);
+    } 
   }
   //To set time value
   function ChangeTimeValue(value){
@@ -239,6 +263,32 @@ function Main(){
     tail[0].y=tail[0].y - Math.sin(snake.direction)*(snake.speed/smoothness);
     snake.x=snake.x+Math.cos(snake.direction)*(snake.speed/smoothness);
     snake.y=snake.y-Math.sin(snake.direction)*(snake.speed/smoothness);
+  }
+  function AffectDirection(){ //100 times per second
+    needWay = GetResultDirection(); // god damn that will really break the program
+    if (needWay!==-13){
+      snake.direction+=ChooseDirectionOfTurn(needWay)*(Math.PI/2/100);
+    }
+    console.log(`needWay=${needWay} snake.direction=${snake.direction}`);
+  }
+  function GetResultDirection(){
+    needX=0;
+    needY=0;
+    if (flagDown||flagUp||flagRight||flagLeft){
+      flagUp ? needY+=1 : needY=needY;
+      flagDown ? needY-=1 : needY=needY;
+      flagRight ? needX+=1 : need=needX;
+      flagLeft ? needX-=1 : needX=needX;
+      //console.log(`x=${needX} y=${needY}`);
+      if (needX===0 && needY===0){
+        return -13;
+      } else { return Math.atan2(needY, needX);}
+    } else { return -13; }
+  }
+  function ChooseDirectionOfTurn(needDirection){
+    if (Math.abs(needDirection-snake.direction)%(Math.PI*2)>=(Math.abs(snake.direction+Math.PI*2-needDirection)%(Math.PI*2))) { //holy shit... this calculation will stop the program....
+      return -1;
+    } else { return 1;}
   }
   //Draw a single particle, that is defined in object "particle"
   function DrawParticle(){
