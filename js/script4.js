@@ -5,12 +5,17 @@ function Main(){
   const ctx = canvas.getContext('2d');
   let AmountOfPressedDirections=0;
   let seconds=1;
+  let score=0;
   let flagPause = true;
   let flagUp = false;
   let flagLeft = false;
   let flagDown = false;
   let flagRight = false;
+  let colorPalette =[];
+  const particleSize=15;
+  const snakeSize=10;
   const timeValueElement=document.querySelector('.time-value');
+  const scoreValueElement=document.querySelector('.score-value');
   const upElement = document.querySelector('.key-up');
   const leftElement = document.querySelector('.key-left');
   const downElement = document.querySelector('.key-down');
@@ -37,10 +42,17 @@ function Main(){
   let needY;
   window.addEventListener('resize', resize);
   SnakeInit((canvas.getBoundingClientRect().right-21)/2 + 100, (canvas.getBoundingClientRect().bottom-136)/2);//отладочный вывод. не забудь убрать
+  InitPalette();
   DrawAllElements();
   document.addEventListener('keydown', KeyPressed);
 
-
+  function InitPalette(){
+    colorPalette.push("hsl(60, 100%,50%)");
+    colorPalette.push("hsl(100,100%,50%)");
+  }
+  function GetColorFromPalette(num){
+    return colorPalette[num%(colorPalette.length)];
+  }
   //Function to draw page with screen frequency
   function DrawFrame(){
     if (flagPause===true)//Stop all logic if the game is not started or paused.
@@ -55,7 +67,7 @@ function Main(){
   //Function to activate functions every 10ms
   function Tick001(){
     AffectDirection();
-     SnakeMove(5);
+    SnakeMove(5);
     AgingParticle();
   }
   //Initialize snake
@@ -66,7 +78,7 @@ function Main(){
     snake.direction=0;
     for (let i=1;i<=5;i++){
       tail.push({
-        x: snake.x-10*i,
+        x: snake.x-snakeSize*i,
         y: snake.y
       });
     }
@@ -248,8 +260,8 @@ function Main(){
   }
   //Generates particle on new coordinates
   function GenerateNewParticle(){
-    particle.x=Math.random()*(canvas.getBoundingClientRect().right-21)+15;
-    particle.y=Math.random()*(canvas.getBoundingClientRect().bottom-136)+15;
+    particle.x=Math.random()*(canvas.getBoundingClientRect().right-21)+particleSize;
+    particle.y=Math.random()*(canvas.getBoundingClientRect().bottom-136)+particleSize;
     particle.life=1.0;
     particle.color= `hsl(${Math.random()*360}, 100%, 50%)`;
   }
@@ -263,6 +275,10 @@ function Main(){
     tail[0].y=snake.y + Math.sin(snake.direction)*(snake.speed/smoothness);
     snake.x=snake.x+ Math.cos(snake.direction)*(snake.speed/smoothness);
     snake.y=snake.y-Math.sin(snake.direction)*(snake.speed/smoothness);
+    if (particleSize+snakeSize>=Math.sqrt(Math.pow((snake.x-particle.x),2)+Math.pow((snake.y-particle.y),2))){
+      console.log(`${particleSize+snakeSize}-----${Math.sqrt(Math.pow((snake.x-particle.x),2)+Math.pow((snake.y-particle.y),2))}:${Math.pow(5,2)}`)
+      SnakeEat();
+    }
     //console.log(`snake head: ${Math.floor(snake.x)}, ${Math.floor(snake.y)}; snake first tail: ${Math.floor(tail[0].x)}, ${Math.floor(tail[0].y)}`);
   }
   function AffectDirection(){ //100 times per second
@@ -297,14 +313,32 @@ function Main(){
     } else { 
       return 1;}
   }
+  function SnakeEat(){
+    GenerateNewParticle();
+    ChangeScore(score++);
+    for (let i=0; i<50;i++){
+      tail.push({
+        x:tail[tail.length-1].x,
+        y:tail[tail.length-1].y
+      });
+    }
+    
+  }
+  function ChangeScore(newScore) {
+    if (newScore>=100) {
+      scoreValueElement.textContent=`${newScore}`;
+    } else if (newScore>=10) {
+      scoreValueElement.textContent=`0${newScore}`;
+    } else {scoreValueElement.textContent=`00${newScore}`;}
+  }
   //Draw a single particle, that is defined in object "particle"
   function DrawParticle(){
     ctx.beginPath();
-    ctx.arc(particle.x, particle.y, particle.life*15,0,Math.PI*2);
+    ctx.arc(particle.x, particle.y, particle.life*particleSize,0,Math.PI*2);
     ctx.fillStyle = particle.color;
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(particle.x, particle.y, 15, 0, Math.PI*2);
+    ctx.arc(particle.x, particle.y, particleSize, 0, Math.PI*2);
     ctx.strokeStyle = particle.color;
     ctx.lineWidth=1;
     ctx.stroke();
@@ -313,17 +347,17 @@ function Main(){
   function DrawSnake(){
     for (let i=tail.length-1; i>=0; i--){
       ctx.beginPath();
-      ctx.arc(tail[i].x, tail[i].y, 10, 0, Math.PI*2);
-      ctx.fillStyle=snake.color;
+      ctx.arc(tail[i].x, tail[i].y, snakeSize, 0, Math.PI*2);
+      ctx.fillStyle=GetColorFromPalette(i);
       ctx.fill();
     }
     ctx.beginPath();
-    ctx.arc(snake.x, snake.y, 8, 0, Math.PI*2);
+    ctx.arc(snake.x, snake.y, snakeSize-2, 0, Math.PI*2);
     ctx.fillStyle="black";
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(snake.x, snake.y, 9, 0, Math.PI*2);
-    ctx.strokeStyle=snake.color;
+    ctx.arc(snake.x, snake.y, snakeSize-1, 0, Math.PI*2);
+    ctx.strokeStyle=colorPalette[0];
     ctx.lineWidth=2;
     ctx.stroke();
   }
