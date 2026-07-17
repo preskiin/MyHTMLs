@@ -55,7 +55,7 @@ function Main(){
   //Function to activate functions every 10ms
   function Tick001(){
     AffectDirection();
-    SnakeMove(5);
+     SnakeMove(5);
     AgingParticle();
   }
   //Initialize snake
@@ -259,26 +259,32 @@ function Main(){
       tail[i].x=tail[i].x+(tail[i-1].x-tail[i].x)/smoothness;
       tail[i].y=tail[i].y+(tail[i-1].y-tail[i].y)/smoothness;
     }
-    tail[0].x=tail[0].x + Math.cos(snake.direction)*(snake.speed/smoothness);
-    tail[0].y=tail[0].y - Math.sin(snake.direction)*(snake.speed/smoothness);
-    snake.x=snake.x+Math.cos(snake.direction)*(snake.speed/smoothness);
+    tail[0].x=snake.x - Math.cos(snake.direction)*(snake.speed/smoothness);
+    tail[0].y=snake.y + Math.sin(snake.direction)*(snake.speed/smoothness);
+    snake.x=snake.x+ Math.cos(snake.direction)*(snake.speed/smoothness);
     snake.y=snake.y-Math.sin(snake.direction)*(snake.speed/smoothness);
+    console.log(`snake head: ${Math.floor(snake.x)}, ${Math.floor(snake.y)}; snake first tail: ${Math.floor(tail[0].x)}, ${Math.floor(tail[0].y)}`);
   }
   function AffectDirection(){ //100 times per second
-    needWay = GetResultDirection(); // god damn that will really break the program
-    if (needWay!==-13){
-      snake.direction+=ChooseDirectionOfTurn(needWay)*(Math.PI/2/100);
+    needWay = GetNeededDirection(); // god damn that will really break the program
+    if (Math.abs(needWay-snake.direction)>Math.PI/200)
+    {
+      if (needWay!==-13){
+        snake.direction+=ChooseDirectionOfTurn(needWay)*(Math.PI/200);
+        if (Math.abs(snake.direction)>Math.PI*2)
+          snake.direction=snake.direction%(Math.PI*2);
+        //console.log(`needWay=${needWay*180/Math.PI} snake.direction=${snake.direction*180/Math.PI}`);
+      }
     }
-    console.log(`needWay=${needWay} snake.direction=${snake.direction}`);
   }
-  function GetResultDirection(){
+  function GetNeededDirection(){
     needX=0;
     needY=0;
     if (flagDown||flagUp||flagRight||flagLeft){
-      flagUp ? needY+=1 : needY=needY;
-      flagDown ? needY-=1 : needY=needY;
-      flagRight ? needX+=1 : need=needX;
-      flagLeft ? needX-=1 : needX=needX;
+      flagUp ? needY-=1 : needY=needY;
+      flagDown ? needY+=1 : needY=needY;
+      flagRight ? needX-=1 : need=needX;
+      flagLeft ? needX+=1 : needX=needX;
       //console.log(`x=${needX} y=${needY}`);
       if (needX===0 && needY===0){
         return -13;
@@ -286,9 +292,10 @@ function Main(){
     } else { return -13; }
   }
   function ChooseDirectionOfTurn(needDirection){
-    if (Math.abs(needDirection-snake.direction)%(Math.PI*2)>=(Math.abs(snake.direction+Math.PI*2-needDirection)%(Math.PI*2))) { //holy shit... this calculation will stop the program....
+    if (/*Math.abs(needDirection-snake.direction)%(Math.PI*2)>=Math.abs(snake.direction+Math.PI*2-needDirection)%(Math.PI*2)*/Math.sin(needDirection-snake.direction)>0) { //holy shit... this calculation will stop the program....
       return -1;
-    } else { return 1;}
+    } else { 
+      return 1;}
   }
   //Draw a single particle, that is defined in object "particle"
   function DrawParticle(){
