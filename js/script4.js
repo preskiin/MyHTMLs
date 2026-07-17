@@ -263,12 +263,12 @@ function Main(){
     tail[0].y=snake.y + Math.sin(snake.direction)*(snake.speed/smoothness);
     snake.x=snake.x+ Math.cos(snake.direction)*(snake.speed/smoothness);
     snake.y=snake.y-Math.sin(snake.direction)*(snake.speed/smoothness);
-    console.log(`snake head: ${Math.floor(snake.x)}, ${Math.floor(snake.y)}; snake first tail: ${Math.floor(tail[0].x)}, ${Math.floor(tail[0].y)}`);
+    //console.log(`snake head: ${Math.floor(snake.x)}, ${Math.floor(snake.y)}; snake first tail: ${Math.floor(tail[0].x)}, ${Math.floor(tail[0].y)}`);
   }
   function AffectDirection(){ //100 times per second
     needWay = GetNeededDirection(); // god damn that will really break the program
-    if (Math.abs(needWay-snake.direction)>Math.PI/200)
-    {
+     if (Math.abs(needWay+Math.PI-snake.direction)>Math.PI/200)
+     {
       if (needWay!==-13){
         snake.direction+=ChooseDirectionOfTurn(needWay)*(Math.PI/200);
         if (Math.abs(snake.direction)>Math.PI*2)
