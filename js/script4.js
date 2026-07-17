@@ -3,7 +3,6 @@ function Main(){
   let timer001;
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
-  let AmountOfPressedDirections=0;
   let seconds=1;
   let score=0;
   let flagPause = true;
@@ -24,8 +23,8 @@ function Main(){
   canvas.width = window.innerWidth-5;
   canvas.height = window.innerHeight-120;
   let particle ={
-    x: (canvas.getBoundingClientRect().right-21)/2,
-    y: (canvas.getBoundingClientRect().bottom-136)/2, 
+    x: (canvas.getBoundingClientRect().right-21)/2+100,
+    y: (canvas.getBoundingClientRect().bottom-136)/2+100, 
     life:1.0,
     color: `hsl(${Math.random()*360}, 100%, 50%)`
   };
@@ -46,10 +45,12 @@ function Main(){
   DrawAllElements();
   document.addEventListener('keydown', KeyPressed);
 
+  //Fills palette of snake`s colors
   function InitPalette(){
-    colorPalette.push("hsl(60, 100%,50%)");
-    colorPalette.push("hsl(100,100%,50%)");
+    colorPalette.push(`hsl(${Math.random()*360}, 100%,50%)`);
+    colorPalette.push(`hsl(${Math.random()*360},100%,50%)`);
   }
+  //Helps painter to choose color for next snake`s tail (or head)
   function GetColorFromPalette(num){
     return colorPalette[num%(colorPalette.length)];
   }
@@ -67,8 +68,9 @@ function Main(){
   //Function to activate functions every 10ms
   function Tick001(){
     AffectDirection();
-    SnakeMove(5);
+    SnakeMove(1);
     AgingParticle();
+    
   }
   //Initialize snake
   function SnakeInit(x0,y0){
@@ -76,7 +78,7 @@ function Main(){
     snake.x=x0;
     snake.y=y0;
     snake.direction=0;
-    for (let i=1;i<=5;i++){
+    for (let i=1;i<=3;i++){
       tail.push({
         x: snake.x-snakeSize*i,
         y: snake.y
@@ -148,7 +150,6 @@ function Main(){
     if (flagUp===false) {
       upElement.classList.toggle('pressed');
       flagUp=true;
-      AmountOfPressedDirections++;
       document.addEventListener('keyup', KeyRelease)
     } 
   }
@@ -157,7 +158,6 @@ function Main(){
     if (flagLeft===false) {
       leftElement.classList.toggle('pressed');
       flagLeft=true;
-      AmountOfPressedDirections++;
       document.addEventListener('keyup', KeyRelease)
     } 
   }
@@ -166,7 +166,6 @@ function Main(){
     if (flagDown===false) {
       downElement.classList.toggle('pressed');
       flagDown=true;
-      AmountOfPressedDirections++;
       document.addEventListener('keyup', KeyRelease)
     } 
   }
@@ -175,7 +174,6 @@ function Main(){
     if (flagRight===false) {
       rightElement.classList.toggle('pressed');
       flagRight=true;
-      AmountOfPressedDirections++;
       document.addEventListener('keyup', KeyRelease)
     } 
   }
@@ -212,7 +210,6 @@ function Main(){
     if (flagUp===true) {
       upElement.classList.toggle('pressed');
       flagUp=false;
-      AmountOfPressedDirections--;
       document.removeEventListener('keyup', ReleaseUp);
     } 
   }
@@ -221,7 +218,6 @@ function Main(){
     if (flagLeft===true){
       leftElement.classList.toggle('pressed');
       flagLeft=false;
-      AmountOfPressedDirections--;
       document.removeEventListener('keyup', ReleaseLeft);
     } 
   }
@@ -230,7 +226,6 @@ function Main(){
     if (flagDown===true){
       downElement.classList.toggle('pressed');
       flagDown=false;
-      AmountOfPressedDirections--;
       document.removeEventListener('keyup', ReleaseDown);
     } 
   }
@@ -239,7 +234,6 @@ function Main(){
     if (flagRight===true) {
       rightElement.classList.toggle('pressed');
       flagRight=false;
-      AmountOfPressedDirections--;
       document.removeEventListener('keyup', ReleaseRight);
     } 
   }
@@ -268,8 +262,9 @@ function Main(){
   //Main snake move function, offset of head is inversly proportional to smoothness
   function SnakeMove(smoothness){
     for (let i=tail.length-1;i>=1;i--){// till 1, because second tail`s element will get position of snake`s head
-      tail[i].x=tail[i].x+(tail[i-1].x-tail[i].x)/smoothness;
-      tail[i].y=tail[i].y+(tail[i-1].y-tail[i].y)/smoothness;
+        tail[i].x=tail[i].x+(tail[i-1].x-tail[i].x)/smoothness;
+        tail[i].y=tail[i].y+(tail[i-1].y-tail[i].y)/smoothness;
+        //console.log(`I  ${i}(${Math.floor(tail[i].x)},${Math.floor(tail[i].y)})  ${i-1}(${Math.floor(tail[i-1].x)},${Math.floor(tail[i-1].y)})`); 
     }
     tail[0].x=snake.x - Math.cos(snake.direction)*(snake.speed/smoothness);
     tail[0].y=snake.y + Math.sin(snake.direction)*(snake.speed/smoothness);
@@ -279,7 +274,22 @@ function Main(){
       console.log(`${particleSize+snakeSize}-----${Math.sqrt(Math.pow((snake.x-particle.x),2)+Math.pow((snake.y-particle.y),2))}:${Math.pow(5,2)}`)
       SnakeEat();
     }
+    TeleportAsNeeded();
     //console.log(`snake head: ${Math.floor(snake.x)}, ${Math.floor(snake.y)}; snake first tail: ${Math.floor(tail[0].x)}, ${Math.floor(tail[0].y)}`);
+  }
+  function TeleportAsNeeded(){
+    if (snake.x+snakeSize>canvas.getBoundingClientRect().right-5){
+      snake.x=snake.x-canvas.getBoundingClientRect().right+5;
+    }
+    if (snake.x-snakeSize<=canvas.getBoundingClientRect().left+5){
+      snake.x=snake.x+canvas.getBoundingClientRect().right-5;
+    }
+    if (snake.y+snakeSize>canvas.getBoundingClientRect().bottom-136){
+      snake.y=snake.y-canvas.getBoundingClientRect().bottom+5;
+    }
+    if (snake.y-snakeSize<=canvas.getBoundingClientRect().top+5){
+      snake.y=snake.y+canvas.getBoundingClientRect().bottom-5;
+    }
   }
   function AffectDirection(){ //100 times per second
     needWay = GetNeededDirection(); // god damn that will really break the program
@@ -293,6 +303,7 @@ function Main(){
       }
     }
   }
+  //Function that calcs what direction user wants
   function GetNeededDirection(){
     needX=0;
     needY=0;
@@ -307,12 +318,14 @@ function Main(){
       } else { return Math.atan2(needY, needX);}
     } else { return -13; }
   }
+  //Function that cals how to reach direction, that user wants: clockwise or counter-clockwise
   function ChooseDirectionOfTurn(needDirection){
     if (/*Math.abs(needDirection-snake.direction)%(Math.PI*2)>=Math.abs(snake.direction+Math.PI*2-needDirection)%(Math.PI*2)*/Math.sin(needDirection-snake.direction)>0) { //holy shit... this calculation will stop the program....
       return -1;
     } else { 
       return 1;}
   }
+  //Adds points to score, generates new dote and makes snake to grow
   function SnakeEat(){
     GenerateNewParticle();
     ChangeScore(score++);
@@ -324,6 +337,7 @@ function Main(){
     }
     
   }
+  //Changes the score
   function ChangeScore(newScore) {
     if (newScore>=100) {
       scoreValueElement.textContent=`${newScore}`;
