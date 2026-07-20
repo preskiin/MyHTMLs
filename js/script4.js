@@ -64,11 +64,12 @@ function Main(){
   //Function to tick status time every second
   function Tick1(){
     ChangeTimeValue(seconds++);
+    //console.log(`snake: (${snake.x}, ${snake.y})`);
   }
   //Function to activate functions every 10ms
   function Tick001(){
     AffectDirection();
-    SnakeMove(1);
+    SnakeMove(5);
     AgingParticle();
     
   }
@@ -78,7 +79,7 @@ function Main(){
     snake.x=x0;
     snake.y=y0;
     snake.direction=0;
-    for (let i=1;i<=3;i++){
+    for (let i=1;i<=50;i++){
       tail.push({
         x: snake.x-snakeSize*i,
         y: snake.y
@@ -261,15 +262,24 @@ function Main(){
   }
   //Main snake move function, offset of head is inversly proportional to smoothness
   function SnakeMove(smoothness){
-    for (let i=tail.length-1;i>=1;i--){// till 1, because second tail`s element will get position of snake`s head
-        tail[i].x=tail[i].x+(tail[i-1].x-tail[i].x)/smoothness;
-        tail[i].y=tail[i].y+(tail[i-1].y-tail[i].y)/smoothness;
-        //console.log(`I  ${i}(${Math.floor(tail[i].x)},${Math.floor(tail[i].y)})  ${i-1}(${Math.floor(tail[i-1].x)},${Math.floor(tail[i-1].y)})`); 
-    }
+    snake.x=snake.x+Math.cos(snake.direction)*(snake.speed/smoothness);
+    snake.y=snake.y-Math.sin(snake.direction)*(snake.speed/smoothness);
     tail[0].x=snake.x - Math.cos(snake.direction)*(snake.speed/smoothness);
     tail[0].y=snake.y + Math.sin(snake.direction)*(snake.speed/smoothness);
-    snake.x=snake.x+ Math.cos(snake.direction)*(snake.speed/smoothness);
-    snake.y=snake.y-Math.sin(snake.direction)*(snake.speed/smoothness);
+    for (let i=1;i<tail.length;i++){// till 1, because second tail`s element will get position of snake`s head
+        tail[i].x=tail[i].x+(tail[i-1].x-tail[i].x)/smoothness;
+        tail[i].y=tail[i].y+(tail[i-1].y-tail[i].y)/smoothness;
+        if(Math.sqrt(Math.pow(tail[i].x-tail[i-1].x, 2)+Math.pow(tail[i].y-tail[i-1].y,2))>snakeSize+1)
+        {
+          tail[i].x=LimitX(tail[i].x);
+          tail[i].y=LimitY(tail[i].y);
+          console.log('Started!');
+        }
+        // tail[i].x=tail[i-1].x;
+        // tail[i].y=tail[i-1].y;
+        //console.log(`I  ${i}(${Math.floor(tail[i].x)},${Math.floor(tail[i].y)})  ${i-1}(${Math.floor(tail[i-1].x)},${Math.floor(tail[i-1].y)})`); 
+    }
+    
     if (particleSize+snakeSize>=Math.sqrt(Math.pow((snake.x-particle.x),2)+Math.pow((snake.y-particle.y),2))){
       console.log(`${particleSize+snakeSize}-----${Math.sqrt(Math.pow((snake.x-particle.x),2)+Math.pow((snake.y-particle.y),2))}:${Math.pow(5,2)}`)
       SnakeEat();
@@ -277,24 +287,52 @@ function Main(){
     TeleportAsNeeded();
     //console.log(`snake head: ${Math.floor(snake.x)}, ${Math.floor(snake.y)}; snake first tail: ${Math.floor(tail[0].x)}, ${Math.floor(tail[0].y)}`);
   }
-  function TeleportAsNeeded(){
-    if (snake.x+snakeSize>canvas.getBoundingClientRect().right-5){
-      snake.x=snake.x-canvas.getBoundingClientRect().right+5;
+  function TeleportAsNeeded(){//0 115 828 918
+    if (snake.x+snakeSize>canvas.getBoundingClientRect().right-2){
+      snake.x=canvas.getBoundingClientRect().left+snakeSize+2;
+      //console.log(`r snake: (${snake.x}, ${snake.y})---- right=${canvas.getBoundingClientRect().right+2}`);
+      //return;
     }
-    if (snake.x-snakeSize<=canvas.getBoundingClientRect().left+5){
-      snake.x=snake.x+canvas.getBoundingClientRect().right-5;
+    if (snake.x-snakeSize<canvas.getBoundingClientRect().left+2){
+      snake.x=canvas.getBoundingClientRect().right-snakeSize-2;
+      //console.log(`l snake: (${snake.x}, ${snake.y})---- left=${canvas.getBoundingClientRect().left+2}`);
+      //return;
     }
-    if (snake.y+snakeSize>canvas.getBoundingClientRect().bottom-136){
-      snake.y=snake.y-canvas.getBoundingClientRect().bottom+5;
+    if (snake.y+snakeSize>canvas.getBoundingClientRect().bottom-110-2){
+      snake.y=snakeSize+2; 
+      //snake.y=0;
+      //console.log(`b snake: (${snake.x}, ${snake.y})---- bot=${canvas.getBoundingClientRect().bottom-115-2}`);
+      //return;
     }
-    if (snake.y-snakeSize<=canvas.getBoundingClientRect().top+5){
-      snake.y=snake.y+canvas.getBoundingClientRect().bottom-5;
+    if (snake.y-snakeSize+1<0+2){
+      snake.y=canvas.getBoundingClientRect().bottom-110-2-snakeSize;
+      //console.log(`t snake: (${snake.x}, ${snake.y})---- top=${canvas.getBoundingClientRect().top}`);
+      //return
     }
   }
-  function AffectDirection(){ //100 times per second
+  function LimitX(xOld){
+    let x0=-13;
+    if (xOld+snakeSize>canvas.getBoundingClientRect().right-2)
+      x0=canvas.getBoundingClientRect().left+snakeSize+2;
+    if (xOld+snakeSize<canvas.getBoundingClientRect().left+2)
+      x0=canvas.getBoundingClientRect.right-snakeSize-2;
+    if (x0===-13)
+      x0=xOld;
+    return x0;
+  }
+  function LimitY(yOld){
+    let y0=-13;
+    if (yOld+snakeSize>canvas.getBoundingClientRect().bottom-110-2)
+      y0=snakeSize+2;
+    if(yOld-snakeSize+1<0+2)
+      y0=canvas.getBoundingClientRect().bottom-110-2;
+    if (y0===-13)
+      y0=yOld;
+    return y0;
+  }
+  function AffectDirection(){ //100 times per second 
     needWay = GetNeededDirection(); // god damn that will really break the program
-     if (Math.abs(needWay+Math.PI-snake.direction)>Math.PI/200)
-     {
+    if (Math.abs(needWay+Math.PI-snake.direction)>Math.PI/400){
       if (needWay!==-13){
         snake.direction+=ChooseDirectionOfTurn(needWay)*(Math.PI/200);
         if (Math.abs(snake.direction)>Math.PI*2)
