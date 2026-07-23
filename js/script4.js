@@ -1,7 +1,7 @@
 function Main(){
   let fictionPoint= {
-    x:0,
-    y:0
+    x:-1,
+    y:-1
   };
   let timer1;
   let timer001;
@@ -266,31 +266,42 @@ function Main(){
   }
   //Main snake move function, offset of head is inversly proportional to smoothness
   function SnakeMove(smoothness){
-    snake.x=snake.x+Math.cos(snake.direction)*(snake.speed/smoothness);
-    snake.y=snake.y-Math.sin(snake.direction)*(snake.speed/smoothness);
-    tail[0].x=snake.x - Math.cos(snake.direction)*10;
-    tail[0].y=snake.y + Math.sin(snake.direction)*10;
+    HeadMove(smoothness);
     for (let i=1;i<tail.length;i++){// till 1, because second tail`s element will get position of snake`s head // && OutBorder(tail[i].x, tail[i].y)
       // if (Math.sqrt(Math.pow(tail[i].x-fictionPoint.x, 2)+Math.pow(tail[i].y-fictionPoint.y,2))>20) {
       //   fictionPoint={x:tail[i].x, y:tail[i].y};
-        tail[i].x=tail[i-1].x;
-        tail[i].y=tail[i-1].y;
+        // tail[i].x=tail[i-1].x;
+        // tail[i].y=tail[i-1].y;
       // } else {
       //   tail[i].x=tail[i].x+(fictionPoint.x-tail[i].x)*0.05;
       //   tail[i].y=tail[i].y+(fictionPoint.y-tail[i].y)*0.05;
       //   fictionPoint={x:tail[i].x, y: tail[i].y};
       // }
-
+      if (GetDistance(tail[i].x, tail[i].y, tail[i-1].x, tail[i-1].y)>20&& OutBorder(tail[i].x,tail[i].y)){
+        fictionPoint={x:tail[i].x, y:tail[i].y};
+        console.log(`1Fiction: x=${fictionPoint.x}, y=${fictionPoint.y}`);
+        tail[i].x=tail[i-1].x;
+        tail[i].y=tail[i-1].y;
+      } if (GetDistance(tail[i].x, tail[i].y, tail[i-1].x, tail[i-1].y)>20 && !OutBorder(tail[i].x,tail[i].y) && fictionPoint.x!==-1 && fictionPoint.y!==-1) {
+        tail[i].x=tail[i].x+(fictionPoint.x-tail[i].x)*0.12;
+        tail[i].y=tail[i].y+(fictionPoint.y-tail[i].y)*0.12;
+        console.log(`2Fiction: x=${fictionPoint.x}, y=${fictionPoint.y}, DISTANCE=${GetDistance(tail[i].x, tail[i].y, tail[i-1].x, tail[i-1].y)}`);
+      } else {
+        tail[i].x=tail[i].x+(tail[i-1].x-tail[i].x)*0.12;
+        tail[i].y=tail[i].y+(tail[i-1].y-tail[i].y)*0.12;
+      }
       // Попробуй через 3 проверки: первая - если большое расстояние и граница нарушена (подумай, может достаточным условием является лишь граница) - телепорт + запоминаем последнюю точку перед переносом; 
       // вторая - если просто большое расстояние - стремимся к последней телепортированной;
       // третья - обычное перемещение.
-    }
+      // ПРоблема найдена: фиктивная точка НИКОГДА не оказывается за гранью. Поэтому все точки тупо приближаются к границе и останавливаются там. 
+      // Им НЕ требуется телепортация и они НЕ удалену друг от друга. Нужно сметить фиктивную точку ЗА границу и дело в шляпе! надеюсь...
 
+    }
+    //console.log(`0: (${tail[0].x},${tail[0].y}); 1:(${tail[1].x},${tail[1].y})`);
     if (particleSize+snakeSize>=Math.sqrt(Math.pow((snake.x-particle.x),2)+Math.pow((snake.y-particle.y),2))){
       console.log(`${particleSize+snakeSize}-----${Math.sqrt(Math.pow((snake.x-particle.x),2)+Math.pow((snake.y-particle.y),2))}:${Math.pow(5,2)}`)
       SnakeEat();
     }
-    TeleportAsNeeded();
     counterMove=0;
     //console.log(`snake head: ${Math.floor(snake.x)}, ${Math.floor(snake.y)}; snake first tail: ${Math.floor(tail[0].x)}, ${Math.floor(tail[0].y)}`);
   }
@@ -300,34 +311,45 @@ function Main(){
   function TeleportAsNeeded(){//0 115 828 918
     if (snake.x+snakeSize>canvas.getBoundingClientRect().right-2){
       snake.x=canvas.getBoundingClientRect().left+snakeSize+2;
+      fictionPoint={x:tail[0].x, y:tail[0].y};
       //console.log(`r snake: (${snake.x}, ${snake.y})---- right=${canvas.getBoundingClientRect().right+2}`);
       //return;
     }
     if (snake.x-snakeSize+1<canvas.getBoundingClientRect().left+2){
       snake.x=canvas.getBoundingClientRect().right-snakeSize-2;
+      fictionPoint={x:tail[0].x, y:tail[0].y};
       //console.log(`l snake: (${snake.x}, ${snake.y})---- left=${canvas.getBoundingClientRect().left+2}`);
       //return;
     }
     if (snake.y+snakeSize>canvas.getBoundingClientRect().bottom-110-2){
       snake.y=snakeSize+2; 
+      fictionPoint={x:tail[0].x, y:tail[0].y};
       //snake.y=0;
       //console.log(`b snake: (${snake.x}, ${snake.y})---- bot=${canvas.getBoundingClientRect().bottom-115-2}`);
       //return;
     }
     if (snake.y-snakeSize+1<0+2){
       snake.y=canvas.getBoundingClientRect().bottom-110-2-snakeSize;
+      fictionPoint={x:tail[0].x, y:tail[0].y};
       //console.log(`t snake: (${snake.x}, ${snake.y})---- top=${canvas.getBoundingClientRect().top}`);
       //return
     }
   }
+  function HeadMove(smoothness){
+    snake.x=snake.x+Math.cos(snake.direction)*(snake.speed/smoothness);
+    snake.y=snake.y-Math.sin(snake.direction)*(snake.speed/smoothness);
+    //TeleportAsNeeded();
+    tail[0].x=snake.x - Math.cos(snake.direction)*10;
+    tail[0].y=snake.y + Math.sin(snake.direction)*10;
+  }
   function OutBorder(pointX, pointY){
-    if (pointX+snakeSize>canvas.getBoundingClientRect().right-2 
-    || pointX-snakeSize+1<canvas.getBoundingClientRect().left+2 
-    || pointY+snakeSize>canvas.getBoundingClientRect().bottom-110-2
-    || pointY-snakeSize+1<0+2)
-      return true;
-    else
+    if (pointX<canvas.getBoundingClientRect().right-2 
+    && pointX+1>canvas.getBoundingClientRect().left+2
+    && pointY<canvas.getBoundingClientRect().bottom-110-2
+    && pointY+1>0+2)
       return false;
+    else
+      return true;
   }
   function LimitX(xOld){
     let x0=-13;
